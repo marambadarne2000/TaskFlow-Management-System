@@ -1,0 +1,62 @@
+<!-- צאט פרויקט: מציג רק את המנהל וחברי הצוות ששייכים לפרויקט הנבחר -->
+<section *ngIf="vm.page === 'chat' && vm.canUseChat" class="panel chat-page">
+  <div class="panel-title">
+    <div>
+      <h2>מרכז התקשורת של הפרויקטים</h2>
+      <p>תקשורת ממוקדת בין מנהל הפרויקט לחברי הצוות המשויכים אליו</p>
+    </div>
+    <div class="chat-selectors">
+      <select [(ngModel)]="vm.chatProjectId" (ngModelChange)="vm.loadChat()">
+        <option *ngFor="let p of vm.visibleProjects" [value]="p.id">
+          {{ p.name }}
+        </option></select
+      ><select *ngIf="vm.role !== 'admin'" [(ngModel)]="vm.chatManagerId" (ngModelChange)="vm.loadChat()">
+        <option *ngFor="let manager of vm.chatManagers" [value]="manager.id">
+          שיחה עם {{ manager.name }}
+        </option></select
+      ><span *ngIf="vm.role === 'admin'"
+        >השיחה של {{ vm.currentUser.name }}</span
+      >
+    </div>
+  </div>
+  <div class="chat-members">
+    <b>חברי החדר:</b
+    ><span *ngFor="let e of vm.chatTeam"
+      ><i>{{ e.name[0] }}</i
+      >{{ e.name }}</span
+    >
+  </div>
+  <div class="messages">
+    <article
+      *ngFor="let m of vm.messages"
+      [hidden]="
+        m.projectId != vm.chatProjectId || m.managerId != vm.chatManagerId
+      "
+    >
+      <b>{{ vm.name(m.userId) }}</b>
+      <p>{{ m.text }}</p>
+      <a *ngIf="m.fileName" [href]="vm.chatFileUrl(m)" class="chat-file">
+        <span class="app-icon" aria-hidden="true">attach_file</span> {{ m.fileName }}
+      </a>
+      <small>{{ m.createdAt }}</small>
+    </article>
+  </div>
+  <form class="chat-form" (ngSubmit)="vm.sendChat()">
+    <input
+      name="chat"
+      [(ngModel)]="vm.chatText"
+      placeholder="כתיבת הודעה לחברי הפרויקט..."
+    /><button class="primary">שליחה</button>
+  </form>
+  <div class="chat-upload">
+    <label>
+      <span class="app-icon" aria-hidden="true">attach_file</span> בחירת קובץ
+      <input type="file" (change)="vm.selectChatFile($event)" />
+    </label>
+    <span *ngIf="vm.chatFile">{{ vm.chatFile.name }}</span>
+    <button class="secondary" type="button" [disabled]="!vm.chatFile" (click)="vm.uploadChatFile()">
+      העלאת קובץ לצ׳אט
+    </button>
+    <small>PDF, Word, תמונה, טקסט או ZIP עד 5MB</small>
+  </div>
+</section>

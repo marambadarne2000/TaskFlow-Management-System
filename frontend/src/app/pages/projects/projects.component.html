@@ -1,0 +1,104 @@
+<!-- מסך פרויקטים: מציג פרויקטים, מנהל, צוות, התקדמות וסינון לפי תאריך -->
+<section class="panel page-panel">
+  <div class="panel-title">
+    <div>
+      <h2>פרויקטים</h2>
+      <p>מעקב אחר התקדמות, אחריות ניהולית וצוותי הפרויקטים</p>
+    </div>
+    <button
+      class="primary"
+      *ngIf="vm.role === 'admin'"
+      (click)="vm.openProject()"
+    >
+      <span class="app-icon" aria-hidden="true">add</span> פרויקט חדש
+    </button>
+  </div>
+  <div class="filter-bar">
+    <label
+      >שנת יצירה<select
+        [(ngModel)]="vm.projectYear"
+        (ngModelChange)="vm.projectDate = ''"
+      >
+        <option value="">כל השנים</option>
+        <option *ngFor="let y of vm.projectYears" [value]="y">{{ y }}</option>
+      </select></label
+    ><label>תאריך מדויק<input type="date" [(ngModel)]="vm.projectDate" /></label
+    ><label
+      >מצב פרויקט<select [(ngModel)]="vm.projectStateFilter">
+        <option value="">כל הפרויקטים</option>
+        <option value="planned">בתכנון</option>
+        <option value="in_progress">בתהליך</option>
+        <option value="completed">הושלמו</option>
+        <option value="overdue">באיחור</option>
+        <option value="attention">דורשים טיפול</option>
+      </select></label
+    ><button (click)="vm.clearProjectFilters()">הצג הכל</button
+    ><span>נמצאו {{ vm.displayedProjects.length }} פרויקטים</span>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>פרויקט</th>
+        <th>המנהל שיצר</th>
+        <th>צוות</th>
+        <th>נוצר בתאריך</th>
+        <th>התקדמות</th>
+        <th>מועד סיום</th>
+        <th>סטטוס</th>
+        <th>פעולות</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let p of vm.displayedProjects">
+        <td>
+          <b>{{ p.name }}</b
+          ><small>{{ vm.projectTasks(p.id).length }} משימות</small>
+        </td>
+        <td>
+          <span class="manager-chip">{{ vm.name(p.managerId) }}</span>
+        </td>
+        <td>
+          <button class="team-count" (click)="vm.openTeam(p)">
+            {{ vm.team(p).length }} חברי צוות
+          </button>
+        </td>
+        <td>{{ p.createdAt | date: "dd/MM/yyyy" }}</td>
+        <td>
+          <div class="progress">
+            <span [style.width.%]="vm.progress(p)"></span>
+          </div>
+          {{ vm.progress(p) }}%
+        </td>
+        <td>{{ p.due | date: "dd/MM/yyyy" }}</td>
+        <td>
+          <em [class.done]="p.status === 'completed'">{{
+            vm.statusText(p.status)
+          }}</em>
+          <span class="attention-badge" *ngIf="vm.projectNeedsAttention(p)">
+            דורש טיפול
+          </span>
+        </td>
+        <td>
+          <button (click)="vm.openProjectView(p)">הצגת הפרויקט</button
+          ><button (click)="vm.page = 'tasks'">משימות</button
+          ><button *ngIf="vm.role === 'admin'" (click)="vm.openTask(p.id)">
+            <span class="app-icon" aria-hidden="true">add_task</span> משימה
+          </button
+          ><button *ngIf="vm.role === 'admin'" (click)="vm.editProject(p)">
+            עריכה
+          </button
+          ><button
+            class="danger"
+            *ngIf="vm.role === 'admin'"
+            (click)="vm.deleteProject(p)"
+          >
+            מחיקה
+          </button>
+        </td>
+      </tr>
+      <tr *ngIf="!vm.displayedProjects.length">
+        <td colspan="8" class="no-results">לא נמצאו פרויקטים בתקופה שנבחרה</td>
+      </tr>
+    </tbody>
+  </table>
+</section>

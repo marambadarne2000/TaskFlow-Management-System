@@ -1,0 +1,208 @@
+<!-- דשבורד: מציג סיכום פרויקטים, משימות, התראות חכמות והיסטוריית פעילות -->
+<section *ngIf="vm.page === 'dashboard'">
+  <div class="dashboard-hero">
+    <div>
+      <span class="eyebrow">TASKFLOW COMPANY OVERVIEW</span>
+      <h2>
+        {{
+          vm.role === "admin"
+            ? "סקירת פעילות ארגונית — " + vm.currentUser.name
+            : "סביבת העבודה של " + vm.currentUser.name
+        }}
+      </h2>
+      <p>
+        {{
+          vm.role === "admin"
+            ? "תמונת מצב עדכנית של הפרויקטים, המשימות, הצוותים והביצועים בחברה."
+            : "ריכוז המשימות, מועדי הביצוע והעדכונים המקצועיים שלך."
+        }}
+      </p>
+    </div>
+    <div class="hero-actions">
+      <button *ngIf="vm.role === 'admin'" (click)="vm.openProject()">
+        <span class="app-icon" aria-hidden="true">add</span> פרויקט חדש</button
+      ><button (click)="vm.page = 'tasks'">הצגת משימות</button>
+    </div>
+  </div>
+  <!-- כרטיסי סיכום: מנהל רואה מצב חברה ועובד רואה נתונים אישיים -->
+  <div class="stats">
+    <ng-container *ngIf="vm.role === 'admin'; else empStats"
+      ><article>
+        <span class="blue app-icon" aria-hidden="true">view_kanban</span>
+        <div>
+          <strong>{{ vm.dashboardProjects.length }}</strong
+          ><span>כל פרויקטי החברה</span>
+        </div>
+      </article>
+      <article>
+        <span class="green app-icon" aria-hidden="true">check_circle</span>
+        <div>
+          <strong>{{ vm.projectsCount("completed") }}</strong
+          ><span>פרויקטים שהסתיימו</span>
+        </div>
+      </article>
+      <article>
+        <span class="orange app-icon" aria-hidden="true">pending_actions</span>
+        <div>
+          <strong>{{ vm.projectsCount("in_progress") }}</strong
+          ><span>פרויקטים בתהליך</span>
+        </div>
+      </article>
+      <article>
+        <span class="purple app-icon" aria-hidden="true">groups</span>
+        <div>
+          <strong>{{ vm.activeEmployees() }}</strong
+          ><span>עובדים פעילים</span>
+        </div>
+      </article></ng-container
+    ><ng-template #empStats
+      ><article>
+        <span class="blue app-icon" aria-hidden="true">checklist</span>
+        <div>
+          <strong>{{ vm.visibleTasks.length }}</strong
+          ><span>המשימות שלי</span>
+        </div>
+      </article>
+      <article>
+        <span class="green app-icon" aria-hidden="true">task_alt</span>
+        <div>
+          <strong>{{ vm.doneTasks() }}</strong
+          ><span>משימות שהשלמתי</span>
+        </div>
+      </article>
+      <article>
+        <span class="orange app-icon" aria-hidden="true">warning</span>
+        <div>
+          <strong>{{ vm.openTasks() }}</strong
+          ><span>משימות פעילות</span>
+        </div>
+      </article>
+      <article>
+        <span class="purple app-icon" aria-hidden="true">schedule</span>
+        <div>
+          <strong>{{ vm.monthHours | number: "1.1-1" }}</strong
+          ><span>שעות החודש</span>
+        </div>
+      </article></ng-template
+    >
+  </div>
+  <!-- מצב הפרויקטים והגרף המחושב לפי סטטוס המשימות -->
+  <div class="grid">
+    <article class="panel wide">
+      <div class="panel-title">
+        <h2>
+          {{ vm.role === "admin" ? "כל פרויקטי החברה" : "הפרויקטים שלי" }}
+        </h2>
+        <button (click)="vm.page = 'projects'">הצג הכל</button>
+      </div>
+      <div class="project-row" *ngFor="let p of vm.dashboardProjects">
+        <div class="project-name">
+          <b>{{ p.name }}</b
+          ><span
+            >מנהל: {{ vm.name(p.managerId) }} · צוות: {{ vm.team(p).length }} ·
+            מועד: {{ p.due }}</span
+          >
+        </div>
+        <div class="progress">
+          <span [style.width.%]="vm.progress(p)"></span>
+        </div>
+        <b>{{ vm.progress(p) }}%</b
+        ><em [class.done]="p.status === 'completed'">{{
+          vm.statusText(p.status)
+        }}</em>
+      </div>
+      <div class="no-results" *ngIf="!vm.dashboardProjects.length">
+        אין פרויקטים להצגה.
+      </div>
+    </article>
+    <article class="panel chart">
+      <div class="panel-title">
+        <div>
+          <h2>משימות לפי מצב</h2>
+          <p>פילוח עדכני של עומס העבודה בחברה</p>
+        </div>
+      </div>
+      <div class="donut" [style.background]="vm.donutStyle()">
+        <span>{{ vm.dashboardTasks.length }}<small>סה״כ משימות</small></span>
+      </div>
+      <div class="task-legend">
+        <article class="todo">
+          <i></i>
+          <div>
+            <b>{{ vm.taskCount("todo") }}</b
+            ><span>לביצוע · {{ vm.taskPercent("todo") }}%</span>
+          </div>
+        </article>
+        <article class="doing">
+          <i></i>
+          <div>
+            <b>{{ vm.taskCount("in_progress") }}</b
+            ><span>בתהליך · {{ vm.taskPercent("in_progress") }}%</span>
+          </div>
+        </article>
+        <article class="finished">
+          <i></i>
+          <div>
+            <b>{{ vm.taskCount("done") }}</b
+            ><span>הושלמו · {{ vm.taskPercent("done") }}%</span>
+          </div>
+        </article>
+      </div>
+    </article>
+  </div>
+  <!-- האלגוריתם החכם מסמן איחורים; ההיסטוריה מוצגת למנהל בלבד -->
+  <div class="smart-dashboard-grid">
+    <article class="panel deadline-panel">
+      <div class="panel-title">
+        <div>
+          <h2>התראות חכמות</h2>
+          <p>מעקב אחר משימות דחופות וחריגות בלוחות הזמנים</p>
+        </div>
+      </div>
+      <div class="deadline-summary">
+        <div class="overdue-summary">
+          <strong>{{ vm.overdueTasks.length }}</strong>
+          <span>משימות באיחור</span>
+        </div>
+        <div class="soon-summary">
+          <strong>{{ vm.dueSoonTasks.length }}</strong>
+          <span>משימות עד 3 ימים</span>
+        </div>
+      </div>
+      <button (click)="vm.page = 'tasks'">מעבר לרשימת המשימות</button>
+    </article>
+
+    <article class="panel activity-panel" *ngIf="vm.role === 'admin'">
+      <div class="panel-title">
+        <div>
+          <h2>היסטוריית פעילות</h2>
+          <p>הפעולות האחרונות שבוצעו במערכת</p>
+        </div>
+      </div>
+      <div class="activity-scroll" #activityList>
+        <div class="activity-item" *ngFor="let item of vm.activities">
+          <div class="activity-icon"><span class="app-icon" aria-hidden="true">done</span></div>
+          <div>
+            <b>{{ item.action }}</b>
+            <span>{{ item.details }}</span>
+            <small
+              >{{ item.userName }} ·
+              {{ item.createdAt | date: "dd/MM/yyyy HH:mm" }}</small
+            >
+          </div>
+        </div>
+      </div>
+      <div class="activity-scroll-controls" *ngIf="vm.activities.length">
+        <button type="button" aria-label="גלילה למעלה" (click)="activityList.scrollBy({ top: -260, behavior: 'smooth' })">
+          <span class="app-icon" aria-hidden="true">keyboard_arrow_up</span>
+        </button>
+        <button type="button" aria-label="גלילה למטה" (click)="activityList.scrollBy({ top: 260, behavior: 'smooth' })">
+          <span class="app-icon" aria-hidden="true">keyboard_arrow_down</span>
+        </button>
+      </div>
+      <p class="no-results" *ngIf="!vm.activities.length">
+        היסטוריית הפעילות תתמלא לאחר ביצוע פעולות חדשות.
+      </p>
+    </article>
+  </div>
+</section>

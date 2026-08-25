@@ -1,0 +1,127 @@
+<!-- מעטפת המערכת: מציגה תפריט ניווט, כותרת, משתמש מחובר ופעמון התראות -->
+<div class="app-shell" *ngIf="vm.loggedIn">
+  <!-- תפריט ניווט: האפשרויות משתנות לפי תפקיד מנהל או עובד -->
+  <aside>
+    <div class="brand"><span><span class="app-icon" aria-hidden="true">check_circle</span></span> TaskFlow</div>
+    <p class="role-label">
+      {{ vm.role === "admin" ? "ממשק מנהל" : "ממשק עובד" }}
+    </p>
+    <!-- תפריט ניווט בין מסכי המערכת. -->
+    <nav>
+      <button
+        [class.active]="vm.page === 'dashboard'"
+        (click)="vm.page = 'dashboard'"
+      >
+        <span class="app-icon" aria-hidden="true">dashboard</span> דשבורד
+      </button>
+      <button
+        [class.active]="vm.page === 'projects'"
+        (click)="vm.page = 'projects'"
+      >
+        <span class="app-icon" aria-hidden="true">view_kanban</span> פרויקטים
+      </button>
+      <button [class.active]="vm.page === 'tasks'" (click)="vm.page = 'tasks'">
+        <span class="app-icon" aria-hidden="true">task_alt</span> משימות
+      </button>
+      <button
+        *ngIf="vm.role === 'admin'"
+        [class.active]="vm.page === 'employees'"
+        (click)="vm.page = 'employees'"
+      >
+        <span class="app-icon" aria-hidden="true">groups</span> ניהול עובדים
+      </button>
+      <button
+        *ngIf="vm.role === 'admin'"
+        [class.active]="vm.page === 'notifications'"
+        (click)="vm.page = 'notifications'"
+      >
+        <span class="app-icon" aria-hidden="true">notifications</span> שליחת התראות
+      </button>
+      <button
+        [class.active]="vm.page === 'attendance'"
+        (click)="vm.page = 'attendance'"
+      >
+        <span class="app-icon" aria-hidden="true">history</span>
+        {{ vm.role === "admin" ? "נוכחות עובדים" : "הנוכחות שלי" }}
+      </button>
+      <button
+        [class.active]="vm.page === 'payroll'"
+        (click)="vm.page = 'payroll'"
+      >
+        <span class="app-icon" aria-hidden="true">payments</span>
+        {{ vm.role === "admin" ? "ניהול שכר" : "התלושים שלי" }}
+      </button>
+      <button
+        [class.active]="vm.page === 'requests'"
+        (click)="vm.page = 'requests'"
+      >
+        <span class="app-icon" aria-hidden="true">checklist</span>
+        {{ vm.role === "admin" ? "בקשות עובדים" : "הבקשות שלי" }}
+      </button>
+      <button
+        *ngIf="vm.canUseChat"
+        [class.active]="vm.page === 'chat'"
+        (click)="vm.openChat()"
+      >
+        <span class="app-icon" aria-hidden="true">chat</span> צ׳אט פרויקטים
+      </button>
+    </nav>
+    <button class="logout" (click)="vm.logout()">יציאה מהמערכת</button>
+  </aside>
+
+  <!-- אזור התוכן המרכזי: מציג קומפוננטה אחת לפי העמוד שנבחר -->
+  <main>
+    <!-- כותרת המסך והפעולות הקבועות של המשתמש. -->
+    <header>
+      <div>
+        <h1>{{ vm.pageTitle }}</h1>
+        <p>
+          {{
+            vm.role === "admin"
+              ? "מרכז השליטה והבקרה הארגוני"
+              : "המשימות, הנוכחות והעדכונים שלך"
+          }}
+        </p>
+      </div>
+      <!-- פעמון ההתראות מציג רק התראות של המשתמש המחובר -->
+      <div class="header-actions">
+        <button
+          class="bell"
+          (click)="vm.showNotices = !vm.showNotices"
+          aria-label="פתיחת התראות"
+        >
+          <span class="app-icon" aria-hidden="true">notifications</span>
+          <b *ngIf="vm.unread.length">{{ vm.unread.length }}</b>
+        </button>
+        <div class="notice-box" *ngIf="vm.showNotices">
+          <div class="notice-title">
+            <h3>התראות</h3>
+            <button (click)="vm.showNotices = false" aria-label="סגירת התראות">
+              <span class="app-icon" aria-hidden="true">close</span>
+            </button>
+          </div>
+          <p *ngIf="!vm.unread.length">אין התראות חדשות</p>
+          <article
+            *ngFor="let n of vm.notifications"
+            [hidden]="n.userId !== vm.currentUserId"
+          >
+            <span>{{ n.text }}</span>
+            <small>{{ n.createdAt }}</small>
+            <button *ngIf="!n.read" (click)="vm.markRead(n)">סמן כנקראה</button>
+            <i *ngIf="n.read">נקראה</i>
+          </article>
+        </div>
+        <div class="avatar">{{ vm.currentUser.name[0] }}</div>
+      </div>
+    </header>
+    <app-dashboard *ngIf="vm.page === 'dashboard'"></app-dashboard>
+    <app-projects *ngIf="vm.page === 'projects'"></app-projects>
+    <app-tasks *ngIf="vm.page === 'tasks'"></app-tasks>
+    <app-employees *ngIf="vm.page === 'employees'"></app-employees>
+    <app-notifications *ngIf="vm.page === 'notifications'"></app-notifications>
+    <app-attendance *ngIf="vm.page === 'attendance'"></app-attendance>
+    <app-payroll *ngIf="vm.page === 'payroll'"></app-payroll>
+    <app-chat *ngIf="vm.page === 'chat'"></app-chat>
+    <app-requests *ngIf="vm.page === 'requests'"></app-requests>
+  </main>
+</div>

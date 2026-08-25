@@ -1,0 +1,108 @@
+<!-- מסך משימות: מציג משימות, סטטוס, עובד אחראי, מועדים וסימון איחורים -->
+<section class="panel page-panel">
+  <div class="panel-title">
+    <div>
+      <h2>משימות</h2>
+      <p>ניהול, תעדוף ומעקב אחר ביצועי המשימות ולוחות הזמנים</p>
+    </div>
+    <button class="primary" *ngIf="vm.role === 'admin'" (click)="vm.openTask()">
+      <span class="app-icon" aria-hidden="true">add_task</span> משימה חדשה
+    </button>
+  </div>
+  <!-- סינון משימות לפי שנת יצירה או תאריך מדויק -->
+  <div class="filter-bar">
+    <label
+      >שנת יצירה<select
+        [(ngModel)]="vm.taskYear"
+        (ngModelChange)="vm.taskDate = ''"
+      >
+        <option value="">כל השנים</option>
+        <option *ngFor="let y of vm.taskYears" [value]="y">{{ y }}</option>
+      </select></label
+    ><label>תאריך מדויק<input type="date" [(ngModel)]="vm.taskDate" /></label
+    ><label
+      >מצב משימה<select [(ngModel)]="vm.taskStateFilter">
+        <option value="">כל המשימות</option>
+        <option value="todo">לביצוע</option>
+        <option value="in_progress">בתהליך</option>
+        <option value="done">הושלמו</option>
+        <option value="overdue">באיחור</option>
+        <option value="soon">מסתיימות בקרוב</option>
+      </select></label
+    ><button (click)="vm.clearTaskFilters()">הצג הכל</button
+    ><span>נמצאו {{ vm.displayedTasks.length }} משימות</span>
+  </div>
+  <!-- כל שורה מקבלת צבע לפי מועד המשימה ומאפשרת שינוי סטטוס -->
+  <table>
+    <thead>
+      <tr>
+        <th>משימה</th>
+        <th>נוצרה בתאריך</th>
+        <th>פרויקט</th>
+        <th>עובד/ת</th>
+        <th>עדיפות</th>
+        <th>סטטוס</th>
+        <th>עדכון</th>
+        <th>פעולות</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr
+        *ngFor="let t of vm.displayedTasks"
+        [class.task-overdue]="vm.deadlineState(t) === 'overdue'"
+        [class.task-soon]="vm.deadlineState(t) === 'soon'"
+      >
+        <td>
+          <b>{{ t.title }}</b
+          ><small>עד {{ t.due | date: "dd/MM/yyyy" }}</small>
+          <span
+            class="deadline-badge overdue"
+            *ngIf="vm.deadlineState(t) === 'overdue'"
+          >
+            באיחור של {{ -vm.daysUntil(t.due) }} ימים
+          </span>
+          <span
+            class="deadline-badge soon"
+            *ngIf="vm.deadlineState(t) === 'soon'"
+          >
+            נותרו {{ vm.daysUntil(t.due) }} ימים
+          </span>
+        </td>
+        <td>{{ t.createdAt | date: "dd/MM/yyyy" }}</td>
+        <td>{{ vm.projectName(t.projectId) }}</td>
+        <td>{{ vm.name(t.workerId) }}</td>
+        <td>{{ vm.statusText(t.priority) }}</td>
+        <td>
+          <em [class.done]="t.status === 'done'">{{
+            vm.statusText(t.status)
+          }}</em>
+        </td>
+        <td>
+          <select
+            [ngModel]="t.status"
+            (ngModelChange)="vm.changeTask(t, $event)"
+          >
+            <option value="todo">לביצוע</option>
+            <option value="in_progress">בתהליך</option>
+            <option value="done">הושלמה</option>
+          </select>
+        </td>
+        <td>
+          <button *ngIf="vm.role === 'admin'" (click)="vm.editTask(t)">
+            עריכה
+          </button>
+          <button
+            class="danger"
+            *ngIf="vm.role === 'admin'"
+            (click)="vm.deleteTask(t)"
+          >
+            מחיקה
+          </button>
+        </td>
+      </tr>
+      <tr *ngIf="!vm.displayedTasks.length">
+        <td colspan="8" class="no-results">לא נמצאו משימות בתקופה שנבחרה</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
