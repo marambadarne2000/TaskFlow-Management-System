@@ -122,6 +122,5 @@ taskflow-student/
 
 ## העלאה ל־GitHub
 
-מעלים את תיקיית `taskflow-student` בלבד ולא את תיקיית הפרויקט הישנה
 
 הקובץ `.gitignore` מונע העלאה של `node_modules`, קובצי build, קובצי log, גיבויים וקורות חיים שהועלו למערכת
